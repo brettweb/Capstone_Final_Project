@@ -1,0 +1,74 @@
+[
+    {
+        "flavor_name": "Classic",
+        "flavor_code": "CL"
+    },
+    {
+        "flavor_name": "Sea Salt",
+        "flavor_code": "SS"
+    },
+    {
+        "flavor_name": "Chocolate",
+        "flavor_code": "CC"
+    },
+    {
+        "flavor_name": "Chocolate Salted",
+        "flavor_code": "CS"
+    },
+    {
+        "flavor_name": "Chai",
+        "flavor_code": "CH"
+    },
+    {
+        "flavor_name": "Spicy",
+        "flavor_code": "SP"
+    },
+    {
+        "flavor_name": "Coffee",
+        "flavor_code": "CO"
+    },
+    {
+        "flavor_name": "Mocha",
+        "flavor_code": "MO"
+    },
+    {
+        "flavor_name": "Apple Pie",
+        "flavor_code": "AP"
+    },
+    {
+        "flavor_name": "Vanilla",
+        "flavor_code": "VA"
+    },
+    {
+        "flavor_name": "Blood Orange",
+        "flavor_code": "BO"
+    },
+    {
+        "flavor_name": "Coconut Lime",
+        "flavor_code": "CLM"
+    },
+    {
+        "flavor_name": "Gingerbread",
+        "flavor_code": "GB"
+    },
+    {
+        "flavor_name": "Tart Cherry",
+        "flavor_code": "TC"
+    },
+    {
+        "flavor_name": "Stout",
+        "flavor_code": "ST"
+    },
+    {
+        "flavor_name": "Turtle",
+        "flavor_code": "TU"
+    },
+    {
+        "flavor_name": "Cashew Square",
+        "flavor_code": "CSQ"
+    },
+    {
+        "flavor_name": "Seasonal Special",
+        "flavor_code": "SPC"
+    }
+]

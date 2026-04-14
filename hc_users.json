@@ -1,0 +1,18 @@
+[
+    {
+        "id": "U001",
+        "full_name": "Owner",
+        "email": "owner@hopescaramels.com",
+        "password": "owner123",
+        "role": "Owner",
+        "created_at": "2026-04-14 13:58:30"
+    },
+    {
+        "id": "U002",
+        "full_name": "Cook",
+        "email": "cook@hopescaramels.com",
+        "password": "cook123",
+        "role": "Cook",
+        "created_at": "2026-04-14 13:58:30"
+    }
+]

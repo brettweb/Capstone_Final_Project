@@ -1,0 +1,187 @@
+[
+    {
+        "ingredient_name": "Cream",
+        "ing_code": "CRM",
+        "default_unit": "Qt"
+    },
+    {
+        "ingredient_name": "Butter",
+        "ing_code": "BTR",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Brown Sugar",
+        "ing_code": "BSG",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Salt",
+        "ing_code": "SLT",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Corn Syrup",
+        "ing_code": "CSY",
+        "default_unit": "Gal"
+    },
+    {
+        "ingredient_name": "Sweetened Condensed Milk",
+        "ing_code": "SCM",
+        "default_unit": "Gal"
+    },
+    {
+        "ingredient_name": "Cream of Tartar",
+        "ing_code": "COT",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Vanilla Beans",
+        "ing_code": "VNB",
+        "default_unit": "Ea"
+    },
+    {
+        "ingredient_name": "100% Ethanol",
+        "ing_code": "ETH",
+        "default_unit": "L"
+    },
+    {
+        "ingredient_name": "Distilled Water",
+        "ing_code": "DWT",
+        "default_unit": "L"
+    },
+    {
+        "ingredient_name": "Ground Cinnamon",
+        "ing_code": "GCI",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Ground Nutmeg",
+        "ing_code": "GNT",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Allspice",
+        "ing_code": "ALS",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Ground Cloves",
+        "ing_code": "GCL",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Ground Ginger",
+        "ing_code": "GGI",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Cardamom",
+        "ing_code": "CAR",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Black Pepper",
+        "ing_code": "BPP",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Blood Orange Juice",
+        "ing_code": "BOJ",
+        "default_unit": "Qt"
+    },
+    {
+        "ingredient_name": "Blood Orange Zest",
+        "ing_code": "BOZ",
+        "default_unit": "Ea"
+    },
+    {
+        "ingredient_name": "Coconut Flakes",
+        "ing_code": "CFL",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Lime Zest",
+        "ing_code": "LMZ",
+        "default_unit": "Ea"
+    },
+    {
+        "ingredient_name": "Chocolate Chips",
+        "ing_code": "CHC",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Espresso Powder",
+        "ing_code": "ESP",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Chai Tea",
+        "ing_code": "CHT",
+        "default_unit": "Ea"
+    },
+    {
+        "ingredient_name": "Ghost Pepper Salt",
+        "ing_code": "GPS",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Coarse Sea Salt",
+        "ing_code": "CSS",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Coconut Flavor",
+        "ing_code": "COF",
+        "default_unit": "Fl"
+    },
+    {
+        "ingredient_name": "Creme of Coconut",
+        "ing_code": "COC",
+        "default_unit": "Can"
+    },
+    {
+        "ingredient_name": "Blood Orange Flavor",
+        "ing_code": "BOF",
+        "default_unit": "Fl"
+    },
+    {
+        "ingredient_name": "Pecan",
+        "ing_code": "PCN",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Cashew",
+        "ing_code": "CSH",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Tart Cherry Juice",
+        "ing_code": "TCJ",
+        "default_unit": "Qt"
+    },
+    {
+        "ingredient_name": "Stout Concentrate",
+        "ing_code": "STC",
+        "default_unit": "Fl"
+    },
+    {
+        "ingredient_name": "Vanilla Extract (House)",
+        "ing_code": "VEX",
+        "default_unit": "Fl"
+    },
+    {
+        "ingredient_name": "Apple Pie Spice Mix",
+        "ing_code": "APS",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Chai Spice Mix",
+        "ing_code": "CSM",
+        "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Gingerbread Spice Mix",
+        "ing_code": "GBS",
+        "default_unit": "Lb"
+    }
+]

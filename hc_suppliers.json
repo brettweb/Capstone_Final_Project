@@ -1,0 +1,86 @@
+[
+    {
+        "sup_code": "HPD",
+        "supplier_name": "High Point Dairy"
+    },
+    {
+        "sup_code": "CMC",
+        "supplier_name": "Country Maid Creamery"
+    },
+    {
+        "sup_code": "GBR",
+        "supplier_name": "Golden Barrell"
+    },
+    {
+        "sup_code": "CTF",
+        "supplier_name": "Cargill TopFlo"
+    },
+    {
+        "sup_code": "MPX",
+        "supplier_name": "Morton's PureX"
+    },
+    {
+        "sup_code": "FUL",
+        "supplier_name": "Fulafrute"
+    },
+    {
+        "sup_code": "GAL",
+        "supplier_name": "Galloway Company"
+    },
+    {
+        "sup_code": "TAR",
+        "supplier_name": "Tartaros"
+    },
+    {
+        "sup_code": "FAN",
+        "supplier_name": "Fante's"
+    },
+    {
+        "sup_code": "LAO",
+        "supplier_name": "LorAnn Oils"
+    },
+    {
+        "sup_code": "WEG",
+        "supplier_name": "Wegman's"
+    },
+    {
+        "sup_code": "GOY",
+        "supplier_name": "Goya"
+    },
+    {
+        "sup_code": "MCC",
+        "supplier_name": "McCormick"
+    },
+    {
+        "sup_code": "RSP",
+        "supplier_name": "Regal Spice"
+    },
+    {
+        "sup_code": "KRK",
+        "supplier_name": "Kirkland"
+    },
+    {
+        "sup_code": "LGU",
+        "supplier_name": "Le Guerandais"
+    },
+    {
+        "sup_code": "CBO",
+        "supplier_name": "Cherry Bay Orchards"
+    },
+    {
+        "sup_code": "GUI",
+        "supplier_name": "Guinness"
+    },
+    {
+        "sup_code": "TWN",
+        "supplier_name": "Total Wine"
+    },
+    {
+        "sup_code": "HMS",
+        "supplier_name": "House-Made"
+    },
+    {
+        "sup_code": "OTH",
+        "supplier_name": "Other/Unknown"
+    }
+]
