@@ -1,1 +1,33 @@
-[]
+[
+    {
+        "lot_number": "CRM-CMC-1Qt-04142026",
+        "ingredient_code": "CRM",
+        "ingredient_name": "Cream",
+        "supplier_code": "CMC",
+        "supplier_name": "Country Maid Creamery",
+        "quantity": "1Qt",
+        "unit": "Qt",
+        "date_received": "2026-04-14",
+        "expiration_date": "",
+        "storage_location": "Cooler",
+        "notes": "",
+        "created_at": "2026-04-14 15:00:19",
+        "created_by": "Owner"
+    },
+    {
+        "lot_number": "CRM-CMC-1QT-04142026",
+        "ingredient_code": "CRM",
+        "ingredient_name": "Cream",
+        "supplier_code": "HPD",
+        "supplier_name": "High Point Dairy",
+        "quantity": "0Qt",
+        "unit": "Qt",
+        "date_received": "2026-04-14",
+        "expiration_date": "",
+        "storage_location": "Cooler",
+        "notes": "",
+        "created_at": "2026-04-14 15:07:50",
+        "created_by": "Owner",
+        "source": "image_scan"
+    }
+]

@@ -304,6 +304,45 @@ def normalize_lot_text(text):
     return cleaned
 
 
+def parse_lot_number(lot_number, ingredient_codes, suppliers):
+    lot_number = normalize_lot_text(lot_number)
+    parts = lot_number.split("-")
+    info = {}
+
+    if len(parts) >= 4:
+        info["ingredient_code"] = parts[0]
+        info["supplier_code"] = parts[1]
+        info["quantity_text"] = parts[2]
+
+        match = re.match(r"^(\d+(?:\.\d+)?)([A-Z]+)$", parts[2])
+        if match:
+            info["quantity_value"] = float(match.group(1))
+            info["quantity_unit"] = match.group(2)
+        else:
+            info["quantity_value"] = 0.0
+            info["quantity_unit"] = ""
+
+        try:
+            info["date_received"] = datetime.strptime(parts[3], "%m%d%Y").date()
+        except ValueError:
+            pass
+
+    if "ingredient_code" in info:
+        for item in ingredient_codes:
+            if item["ing_code"].upper() == info["ingredient_code"]:
+                info["ingredient_name"] = item["ingredient_name"]
+                info["default_unit"] = item["default_unit"]
+                break
+
+    if "supplier_code" in info:
+        for supplier in suppliers:
+            if supplier["sup_code"].upper() == info["supplier_code"]:
+                info["supplier_name"] = supplier["supplier_name"]
+                break
+
+    return info
+
+
 def extract_lot_from_image(uploaded_file):
     reader = get_ocr_reader()
     if reader is None:
@@ -359,9 +398,34 @@ def render_scan_lot_tab(tab_key_prefix, ingredients, batches, ingredient_codes, 
     if easyocr is None:
         st.warning("OCR package missing. Install: pip install easyocr pillow numpy")
 
+    extracted_lot = st.session_state.get(f"{tab_key_prefix}_ocr_lot", "")
+    lot_info = parse_lot_number(extracted_lot, ingredient_codes, suppliers) if extracted_lot else {}
+
+    if extracted_lot:
+        if "ingredient_code" in lot_info and f"{tab_key_prefix}_scan_ing" not in st.session_state:
+            # prefill ingredient selection from OCR lot
+            matching = [item for item in ingredient_codes if item["ing_code"].upper() == lot_info["ingredient_code"]]
+            if matching:
+                st.session_state[f"{tab_key_prefix}_scan_ing"] = matching[0]
+
+        if "supplier_code" in lot_info and f"{tab_key_prefix}_scan_supplier" not in st.session_state:
+            matching = [sup for sup in suppliers if sup["sup_code"].upper() == lot_info["supplier_code"]]
+            if matching:
+                st.session_state[f"{tab_key_prefix}_scan_supplier"] = matching[0]
+
+        if "quantity_value" in lot_info and f"{tab_key_prefix}_scan_qty" not in st.session_state:
+            st.session_state[f"{tab_key_prefix}_scan_qty"] = lot_info["quantity_value"]
+
+        if "date_received" in lot_info and f"{tab_key_prefix}_scan_date" not in st.session_state:
+            st.session_state[f"{tab_key_prefix}_scan_date"] = lot_info["date_received"]
+
+        if "default_unit" in lot_info and f"{tab_key_prefix}_scan_storage" not in st.session_state:
+            # keep storage field separate; we don't auto-set it from lot number
+            pass
+
     col1, col2 = st.columns(2)
 
-    with col1:
+    with col2:
         selected_ing = st.selectbox(
             "Ingredient",
             options=ingredient_codes,
@@ -385,7 +449,7 @@ def render_scan_lot_tab(tab_key_prefix, ingredients, batches, ingredient_codes, 
 
         date_received = st.date_input(
             "Date Received",
-            value=datetime.today(),
+            value=st.session_state.get(f"{tab_key_prefix}_scan_date", datetime.today()),
             key=f"{tab_key_prefix}_scan_date"
         )
 
@@ -396,13 +460,12 @@ def render_scan_lot_tab(tab_key_prefix, ingredients, batches, ingredient_codes, 
 
         storage_location = st.text_input(
             "Storage Location",
-            value="Cooler",
+            value=st.session_state.get(f"{tab_key_prefix}_scan_storage", "Cooler"),
             key=f"{tab_key_prefix}_scan_storage"
         )
 
         notes = st.text_area("Notes", key=f"{tab_key_prefix}_scan_notes")
 
-    with col2:
         batch_options = [b["batch_id"] for b in batches]
         selected_batch_ids = st.multiselect(
             "Link this lot to batch(es)",
@@ -410,6 +473,7 @@ def render_scan_lot_tab(tab_key_prefix, ingredients, batches, ingredient_codes, 
             key=f"{tab_key_prefix}_scan_batches"
         )
 
+    with col1:
         uploaded_file = st.file_uploader(
             "Upload lot label image",
             type=["png", "jpg", "jpeg", "webp"],
@@ -821,6 +885,7 @@ elif st.session_state.page == "owner":
             suppliers=suppliers,
             current_user_name=st.session_state.user["full_name"]
         )
+
     with tab4:
         st.subheader("Add New Batch Record")
 
