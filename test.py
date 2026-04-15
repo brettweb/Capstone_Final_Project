@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, date
 import time
 import pandas as pd
 
@@ -342,7 +342,6 @@ def parse_lot_number(lot_number, ingredient_codes, suppliers):
 
     return info
 
-
 def extract_lot_from_image(uploaded_file):
     reader = get_ocr_reader()
     if reader is None:
@@ -363,7 +362,6 @@ def extract_lot_from_image(uploaded_file):
     if cleaned_lines:
         return cleaned_lines[0], cleaned_lines, None
     return None, [], "No readable text found in the image."
-
 
 def save_scanned_lot(ingredients, batches, ingredient_record, selected_batch_ids, user_name):
     lot_number = ingredient_record["lot_number"]
@@ -390,7 +388,6 @@ def save_scanned_lot(ingredients, batches, ingredient_record, selected_batch_ids
     if updated_any_batch:
         save_json(BATCHES_PATH, batches)
 
-
 def render_scan_lot_tab(tab_key_prefix, ingredients, batches, ingredient_codes, suppliers, current_user_name):
     st.subheader("Scan Lot Number From Photo")
     st.caption("Upload a picture of a lot label. AI will read the lot number, let you confirm it, save it to the ingredient JSON, and optionally link it to one or more caramel batches.")
@@ -402,21 +399,25 @@ def render_scan_lot_tab(tab_key_prefix, ingredients, batches, ingredient_codes, 
     lot_info = parse_lot_number(extracted_lot, ingredient_codes, suppliers) if extracted_lot else {}
 
     if extracted_lot:
-        if "ingredient_code" in lot_info and f"{tab_key_prefix}_scan_ing" not in st.session_state:
-            # prefill ingredient selection from OCR lot
-            matching = [item for item in ingredient_codes if item["ing_code"].upper() == lot_info["ingredient_code"]]
-            if matching:
-                st.session_state[f"{tab_key_prefix}_scan_ing"] = matching[0]
+        if st.session_state.get(f"{tab_key_prefix}_edited_lot", "") != extracted_lot:
+            st.session_state[f"{tab_key_prefix}_edited_lot"] = extracted_lot
 
-        if "supplier_code" in lot_info and f"{tab_key_prefix}_scan_supplier" not in st.session_state:
-            matching = [sup for sup in suppliers if sup["sup_code"].upper() == lot_info["supplier_code"]]
-            if matching:
-                st.session_state[f"{tab_key_prefix}_scan_supplier"] = matching[0]
+        if "ingredient_name" in lot_info:
+            st.session_state[f"{tab_key_prefix}_scan_ingredient_name"] = lot_info["ingredient_name"]
+            st.session_state[f"{tab_key_prefix}_scan_ingredient_code"] = lot_info.get("ingredient_code", "")
 
-        if "quantity_value" in lot_info and f"{tab_key_prefix}_scan_qty" not in st.session_state:
-            st.session_state[f"{tab_key_prefix}_scan_qty"] = lot_info["quantity_value"]
+        if "supplier_name" in lot_info:
+            st.session_state[f"{tab_key_prefix}_scan_supplier_name"] = lot_info["supplier_name"]
+            st.session_state[f"{tab_key_prefix}_scan_supplier_code"] = lot_info.get("supplier_code", "")
 
-        if "date_received" in lot_info and f"{tab_key_prefix}_scan_date" not in st.session_state:
+        if "quantity_text" in lot_info:
+            st.session_state[f"{tab_key_prefix}_scan_quantity_text"] = lot_info["quantity_text"]
+            st.session_state[f"{tab_key_prefix}_scan_quantity_value"] = lot_info.get("quantity_value", 0.0)
+
+        if "default_unit" in lot_info:
+            st.session_state[f"{tab_key_prefix}_scan_default_unit"] = lot_info["default_unit"]
+
+        if "date_received" in lot_info:
             st.session_state[f"{tab_key_prefix}_scan_date"] = lot_info["date_received"]
 
         if "default_unit" in lot_info and f"{tab_key_prefix}_scan_storage" not in st.session_state:
@@ -426,31 +427,36 @@ def render_scan_lot_tab(tab_key_prefix, ingredients, batches, ingredient_codes, 
     col1, col2 = st.columns(2)
 
     with col2:
-        selected_ing = st.selectbox(
+        ingredient_name = st.session_state.get(f"{tab_key_prefix}_scan_ingredient_name", "")
+        ingredient_code = st.session_state.get(f"{tab_key_prefix}_scan_ingredient_code", "")
+        selected_supplier_name = st.session_state.get(f"{tab_key_prefix}_scan_supplier_name", "")
+        supplier_code = st.session_state.get(f"{tab_key_prefix}_scan_supplier_code", "")
+        quantity_text = st.session_state.get(f"{tab_key_prefix}_scan_quantity_text", "")
+        quantity_value = st.session_state.get(f"{tab_key_prefix}_scan_quantity_value", 0.0)
+        date_received_value = st.session_state.get(f"{tab_key_prefix}_scan_date", datetime.today())
+
+        st.text_input(
             "Ingredient",
-            options=ingredient_codes,
-            format_func=lambda x: x["ingredient_name"],
-            key=f"{tab_key_prefix}_scan_ing"
+            value=f"{ingredient_name} ({ingredient_code})" if ingredient_name else "",
+            disabled=True
         )
 
-        selected_supplier = st.selectbox(
+        st.text_input(
             "Supplier",
-            options=suppliers,
-            format_func=lambda x: f'{x["sup_code"]} - {x["supplier_name"]}',
-            key=f"{tab_key_prefix}_scan_supplier"
+            value=f"{selected_supplier_name} ({supplier_code})" if selected_supplier_name else "",
+            disabled=True
         )
 
-        quantity_value = st.number_input(
+        st.text_input(
             "Quantity",
-            min_value=0.0,
-            step=0.5,
-            key=f"{tab_key_prefix}_scan_qty"
+            value=quantity_text,
+            disabled=True
         )
 
-        date_received = st.date_input(
+        st.text_input(
             "Date Received",
-            value=st.session_state.get(f"{tab_key_prefix}_scan_date", datetime.today()),
-            key=f"{tab_key_prefix}_scan_date"
+            value=date_received_value.strftime("%Y-%m-%d") if isinstance(date_received_value, (datetime, date)) else str(date_received_value),
+            disabled=True
         )
 
         expiration_date = st.text_input(
@@ -506,9 +512,11 @@ def render_scan_lot_tab(tab_key_prefix, ingredients, batches, ingredient_codes, 
                 st.write("Other detected text:")
                 st.write(raw_lines)
 
+            if st.session_state.get(f"{tab_key_prefix}_edited_lot", "") != extracted_lot:
+                st.session_state[f"{tab_key_prefix}_edited_lot"] = extracted_lot
+
             edited_lot = st.text_input(
                 "Confirm or edit lot number before saving",
-                value=extracted_lot,
                 key=f"{tab_key_prefix}_edited_lot"
             )
 
@@ -516,29 +524,50 @@ def render_scan_lot_tab(tab_key_prefix, ingredients, batches, ingredient_codes, 
                 if not edited_lot.strip():
                     st.error("Lot number cannot be blank.")
                 else:
-                    ingredient_name = selected_ing["ingredient_name"]
-                    ingredient_code = selected_ing["ing_code"]
-                    unit = selected_ing["default_unit"]
-                    supplier_code = selected_supplier["sup_code"]
-                    supplier_name = selected_supplier["supplier_name"]
-                    quantity_text = f"{quantity_value:g}{unit}"
+                    edited_lot_norm = normalize_lot_text(edited_lot)
+                    parsed_edit = parse_lot_number(edited_lot_norm, ingredient_codes, suppliers)
 
-                    new_ingredient = {
-                        "lot_number": normalize_lot_text(edited_lot),
-                        "ingredient_code": ingredient_code,
-                        "ingredient_name": ingredient_name,
-                        "supplier_code": supplier_code,
-                        "supplier_name": supplier_name,
-                        "quantity": quantity_text,
-                        "unit": unit,
-                        "date_received": pd.to_datetime(date_received).strftime("%Y-%m-%d"),
-                        "expiration_date": expiration_date.strip(),
-                        "storage_location": storage_location.strip(),
-                        "notes": notes.strip(),
-                        "created_at": timestamp_now(),
-                        "created_by": current_user_name,
-                        "source": "image_scan"
-                    }
+                    ingredient_name = parsed_edit.get("ingredient_name", st.session_state.get(f"{tab_key_prefix}_scan_ingredient_name", ""))
+                    ingredient_code = parsed_edit.get("ingredient_code", st.session_state.get(f"{tab_key_prefix}_scan_ingredient_code", ""))
+                    unit = parsed_edit.get("default_unit", st.session_state.get(f"{tab_key_prefix}_scan_default_unit", ""))
+                    supplier_code = parsed_edit.get("supplier_code", st.session_state.get(f"{tab_key_prefix}_scan_supplier_code", ""))
+                    supplier_name = parsed_edit.get("supplier_name", st.session_state.get(f"{tab_key_prefix}_scan_supplier_name", ""))
+                    quantity_text = parsed_edit.get("quantity_text", st.session_state.get(f"{tab_key_prefix}_scan_quantity_text", ""))
+                    quantity_value = parsed_edit.get("quantity_value", st.session_state.get(f"{tab_key_prefix}_scan_quantity_value", 0.0))
+                    if "date_received" in parsed_edit:
+                        date_received_value = parsed_edit["date_received"]
+
+                    if not ingredient_name or not ingredient_code or not supplier_code or not supplier_name:
+                        st.error("Unable to save scanned lot: missing ingredient or supplier information.")
+                    else:
+                        if not quantity_text and unit:
+                            quantity_text = f"{quantity_value:g}{unit}"
+
+                        st.session_state[f"{tab_key_prefix}_scan_ingredient_name"] = ingredient_name
+                        st.session_state[f"{tab_key_prefix}_scan_ingredient_code"] = ingredient_code
+                        st.session_state[f"{tab_key_prefix}_scan_supplier_name"] = supplier_name
+                        st.session_state[f"{tab_key_prefix}_scan_supplier_code"] = supplier_code
+                        st.session_state[f"{tab_key_prefix}_scan_quantity_text"] = quantity_text
+                        st.session_state[f"{tab_key_prefix}_scan_quantity_value"] = quantity_value
+                        if "date_received" in parsed_edit:
+                            st.session_state[f"{tab_key_prefix}_scan_date"] = parsed_edit["date_received"]
+
+                        new_ingredient = {
+                            "lot_number": edited_lot_norm,
+                            "ingredient_code": ingredient_code,
+                            "ingredient_name": ingredient_name,
+                            "supplier_code": supplier_code,
+                            "supplier_name": supplier_name,
+                            "quantity": quantity_text,
+                            "unit": unit,
+                            "date_received": pd.to_datetime(date_received_value).strftime("%Y-%m-%d"),
+                            "expiration_date": expiration_date.strip(),
+                            "storage_location": storage_location.strip(),
+                            "notes": notes.strip(),
+                            "created_at": timestamp_now(),
+                            "created_by": current_user_name,
+                            "source": "image_scan"
+                        }
 
                     if any(i["lot_number"] == new_ingredient["lot_number"] for i in ingredients):
                         st.warning("That lot already exists in hc_ingredients.json. It will still be linked to any selected batches.")
@@ -644,9 +673,7 @@ if "messages" not in st.session_state:
         }
     ]
 
-
 users, suppliers, ingredient_codes, flavor_codes, ingredients, batches = load_all_data()
-
 
 # SIDEBAR
 with st.sidebar:
@@ -705,7 +732,6 @@ if st.session_state.page == "login":
         else:
             st.error("Invalid email or password.")
 
-
 # REGISTER PAGE
 elif st.session_state.page == "register":
     st.title("Register New Account")
@@ -727,7 +753,6 @@ elif st.session_state.page == "register":
                 st.rerun()
             else:
                 st.error(message)
-
 
 # HOME PAGE
 elif st.session_state.page == "home":
@@ -772,7 +797,6 @@ elif st.session_state.page == "home":
             })
         st.markdown("## Registered Users")
         st.dataframe(pd.DataFrame(safe_users), use_container_width=True)
-
 
 # OWNER DASHBOARD
 elif st.session_state.page == "owner":
