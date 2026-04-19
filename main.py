@@ -10,10 +10,35 @@ from app.pages_cook import render_cook_dashboard
 
 
 st.set_page_config(
+        page_title="Hope's Caramels Traceability System",
+        layout="wide",
+        initial_sidebar_state="expanded"
+)
+
+
+# Simple mobile device warning using JS injection
+import streamlit.components.v1 as components
+st.set_page_config(
     page_title="Hope's Caramels Traceability System",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+components.html("""
+<script>
+if (window.innerWidth < 700) {
+    var warning = document.createElement('div');
+    warning.style.background = '#fffae6';
+    warning.style.color = '#b26d00';
+    warning.style.padding = '10px';
+    warning.style.margin = '10px 0';
+    warning.style.border = '1px solid #ffe58f';
+    warning.style.borderRadius = '5px';
+    warning.innerText = 'You are using a mobile device. For best results, rotate your device or use a desktop/laptop.';
+    document.body.prepend(warning);
+}
+</script>
+""", height=0)
+
 
 # Log server info for debugging
 def get_local_ip():

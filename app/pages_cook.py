@@ -88,10 +88,22 @@ def render_cook_dashboard(users, suppliers, ingredient_codes, flavor_codes, ingr
             key = code.lower().replace(" ", "_")
             lot_options = [i["lot_number"] for i in ingredients if i["ingredient_name"].lower() == code.lower()]
             col_lot, col_cam = st.columns([5,1])
-            # Use session state to store OCR result for each ingredient
-            ocr_key = f"cook_batch_{key}_ocr"
-            selected_lots = col_lot.multiselect(f"{code} Lots", options=lot_options, key=f"cook_batch_{key}_lots")
+            multiselect_key = f"cook_batch_{key}_lots"
             uploaded_file = col_cam.file_uploader(" ", type=["png","jpg","jpeg","webp"], key=f"cook_batch_{key}_upload", label_visibility="collapsed")
+            # Use a flag to trigger OCR update
+            ocr_flag_key = f"cook_batch_{key}_ocr_flag"
+            if ocr_flag_key not in st.session_state:
+                st.session_state[ocr_flag_key] = False
+            # If OCR flag is set, update the multiselect default and reset flag
+            if st.session_state[ocr_flag_key]:
+                # Only update if the extracted lot is present
+                extracted_lot = st.session_state.get(f"cook_batch_{key}_ocr_result", None)
+                prev_selected = st.session_state.get(multiselect_key, [])
+                if extracted_lot and extracted_lot not in prev_selected:
+                    new_selected = prev_selected + [extracted_lot]
+                    st.session_state[multiselect_key] = new_selected
+                st.session_state[ocr_flag_key] = False
+            selected_lots = col_lot.multiselect(f"{code} Lots", options=lot_options, key=multiselect_key)
             if uploaded_file is not None:
                 extracted_lot, raw_lines, error_message = extract_lot_from_image(uploaded_file)
                 if error_message:
@@ -100,13 +112,12 @@ def render_cook_dashboard(users, suppliers, ingredient_codes, flavor_codes, ingr
                     # Add OCR result to dropdown if not present
                     if extracted_lot not in lot_options:
                         lot_options.append(extracted_lot)
-                    # Add to selected lots if not already selected
-                    if extracted_lot not in selected_lots:
-                        selected_lots.append(extracted_lot)
-                    # Update the multiselect value in session state
-                    st.session_state[f"cook_batch_{key}_lots"] = selected_lots
-                    col_cam.success(f"Read: {extracted_lot}")
-            ingredient_lots[key] = st.session_state.get(f"cook_batch_{key}_lots", selected_lots)
+                    # Store result and set flag to update selection on rerun
+                    st.session_state[f"cook_batch_{key}_ocr_result"] = extracted_lot
+                    st.session_state[ocr_flag_key] = True
+                    col_cam.success(f"Read: {extracted_lot}. Added to selection.")
+                    st.rerun()
+            ingredient_lots[key] = st.session_state.get(multiselect_key, selected_lots)
         if st.button("Add Batch", key="cook_add_batch_btn", type="primary", use_container_width=True):
             if any(b["batch_id"] == batch_id for b in batches):
                 st.error("That batch ID already exists.")
