@@ -75,5 +75,20 @@
         "notes": "",
         "created_at": "2026-04-19 18:38:04",
         "created_by": "Owner"
+    },
+    {
+        "lot_number": "COT-HPD-0Lb-04192026",
+        "ingredient_code": "COT",
+        "ingredient_name": "Cream of Tartar",
+        "supplier_code": "HPD",
+        "supplier_name": "High Point Dairy",
+        "quantity": "0Lb",
+        "unit": "Lb",
+        "date_received": "2026-04-19",
+        "expiration_date": "",
+        "storage_location": "Cooler",
+        "notes": "",
+        "created_at": "2026-04-19 18:51:00",
+        "created_by": "Owner"
     }
 ]

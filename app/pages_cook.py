@@ -8,11 +8,12 @@ from app.search import batch_lookup, ingredient_lookup, find_batches_using_lot
 
 def render_cook_dashboard(users, suppliers, ingredient_codes, flavor_codes, ingredients, batches, current_user):
     st.title("Cook Dashboard")
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "View Data",
         "Batch Lookup",
         "Lot Lookup",
         "Scan Lot From Photo",
+        "Add Batch",
         "AI Assistant"
     ])
     with tab1:
@@ -58,4 +59,64 @@ def render_cook_dashboard(users, suppliers, ingredient_codes, flavor_codes, ingr
             suppliers=suppliers,
             current_user_name=current_user["full_name"]
         )
-    # AI Assistant tab can be added here as needed
+
+    with tab5:
+        st.subheader("Add New Batch")
+        from app.utils import generate_batch_id
+        from app.data import save_json, BATCHES_PATH, timestamp_now
+        col1, col2 = st.columns(2)
+        with col1:
+            selected_flavor = st.selectbox(
+                "Select Flavor",
+                options=flavor_codes,
+                format_func=lambda x: f'{x["flavor_code"]} - {x["flavor_name"]}'
+            )
+            flavor_code = selected_flavor["flavor_code"]
+            flavor_name = selected_flavor["flavor_name"]
+            date_produced = st.date_input("Date Produced", value=pd.to_datetime("today"))
+            batch_id = generate_batch_id(date_produced, flavor_code, batches)
+            st.write(f"Batch ID: {batch_id}")
+        with col2:
+            st.write(f"Flavor: {flavor_name}")
+            st.write(f"Date: {pd.to_datetime(date_produced).strftime('%Y-%m-%d')}")
+            notes = st.text_area("Batch Notes")
+            wholesale = st.checkbox("Wholesale Batch?", value=False)
+        st.markdown("### Link Ingredient Lots")
+        ingredient_lots = {}
+        for code in ["Cream", "Butter", "Brown Sugar", "Salt", "Corn Syrup", "Sweetened Condensed Milk", "Cream of Tartar", "Flavoring", "Nuts"]:
+            key = code.lower().replace(" ", "_")
+            lot_options = [i["lot_number"] for i in ingredients if i["ingredient_name"].lower() == code.lower()]
+            selected_lots = st.multiselect(f"{code} Lots", options=lot_options, key=f"cook_batch_{key}_lots")
+            ingredient_lots[key] = selected_lots
+        if st.button("Add Batch", key="cook_add_batch_btn", type="primary", use_container_width=True):
+            if any(b["batch_id"] == batch_id for b in batches):
+                st.error("That batch ID already exists.")
+            else:
+                new_batch = {
+                    "batch_id": batch_id,
+                    "date_produced": pd.to_datetime(date_produced).strftime("%Y-%m-%d"),
+                    "flavor_code": flavor_code,
+                    "flavor_name": flavor_name,
+                    "ingredient_lots": ingredient_lots,
+                    "wholesale": wholesale,
+                    "notes": notes.strip(),
+                    "created_at": timestamp_now(),
+                    "created_by": current_user["full_name"]
+                }
+                batches.append(new_batch)
+                save_json(BATCHES_PATH, batches)
+                st.success(f"Batch {batch_id} added successfully.")
+                st.rerun()
+
+    with tab6:
+        st.subheader("AI Assistant")
+        st.info("Ask the AI assistant about batches, lot numbers, suppliers, low stock, or type 'help'.")
+        messages = st.session_state.get("messages", [])
+        for msg in messages:
+            st.chat_message(msg["role"]).write(msg["content"])
+        user_input = st.chat_input("Ask a question...")
+        if user_input:
+            # Placeholder: In production, connect to an LLM or backend
+            st.session_state.messages.append({"role": "user", "content": user_input})
+            st.session_state.messages.append({"role": "assistant", "content": "Sorry, the AI assistant is not yet implemented in this demo."})
+            st.rerun()
