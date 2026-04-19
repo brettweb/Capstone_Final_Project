@@ -64,6 +64,7 @@ def render_cook_dashboard(users, suppliers, ingredient_codes, flavor_codes, ingr
         st.subheader("Add New Batch")
         from app.utils import generate_batch_id
         from app.data import save_json, BATCHES_PATH, timestamp_now
+        from app.ocr import extract_lot_from_image
         col1, col2 = st.columns(2)
         with col1:
             selected_flavor = st.selectbox(
@@ -86,8 +87,26 @@ def render_cook_dashboard(users, suppliers, ingredient_codes, flavor_codes, ingr
         for code in ["Cream", "Butter", "Brown Sugar", "Salt", "Corn Syrup", "Sweetened Condensed Milk", "Cream of Tartar", "Flavoring", "Nuts"]:
             key = code.lower().replace(" ", "_")
             lot_options = [i["lot_number"] for i in ingredients if i["ingredient_name"].lower() == code.lower()]
-            selected_lots = st.multiselect(f"{code} Lots", options=lot_options, key=f"cook_batch_{key}_lots")
-            ingredient_lots[key] = selected_lots
+            col_lot, col_cam = st.columns([5,1])
+            # Use session state to store OCR result for each ingredient
+            ocr_key = f"cook_batch_{key}_ocr"
+            selected_lots = col_lot.multiselect(f"{code} Lots", options=lot_options, key=f"cook_batch_{key}_lots")
+            uploaded_file = col_cam.file_uploader(" ", type=["png","jpg","jpeg","webp"], key=f"cook_batch_{key}_upload", label_visibility="collapsed")
+            if uploaded_file is not None:
+                extracted_lot, raw_lines, error_message = extract_lot_from_image(uploaded_file)
+                if error_message:
+                    col_cam.error(error_message)
+                elif extracted_lot:
+                    # Add OCR result to dropdown if not present
+                    if extracted_lot not in lot_options:
+                        lot_options.append(extracted_lot)
+                    # Add to selected lots if not already selected
+                    if extracted_lot not in selected_lots:
+                        selected_lots.append(extracted_lot)
+                    # Update the multiselect value in session state
+                    st.session_state[f"cook_batch_{key}_lots"] = selected_lots
+                    col_cam.success(f"Read: {extracted_lot}")
+            ingredient_lots[key] = st.session_state.get(f"cook_batch_{key}_lots", selected_lots)
         if st.button("Add Batch", key="cook_add_batch_btn", type="primary", use_container_width=True):
             if any(b["batch_id"] == batch_id for b in batches):
                 st.error("That batch ID already exists.")

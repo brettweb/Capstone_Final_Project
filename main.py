@@ -1,16 +1,35 @@
 
 import streamlit as st
+import socket
+import logging
 from app.data import load_all_data
 from app.pages_login import render_login_page, render_register_page
 from app.pages_home import render_home_page
 from app.pages_owner import render_owner_dashboard
 from app.pages_cook import render_cook_dashboard
 
+
 st.set_page_config(
     page_title="Hope's Caramels Traceability System",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Log server info for debugging
+def get_local_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception as e:
+        return "127.0.0.1"
+
+local_ip = get_local_ip()
+st.info(f"[DEBUG] Streamlit running. If accessing from another device, use: http://{local_ip}:8501")
+logging.basicConfig(level=logging.INFO)
+logging.info(f"[DEBUG] Streamlit running. Access: http://{local_ip}:8501")
 
 # Session state setup
 if "page" not in st.session_state:
