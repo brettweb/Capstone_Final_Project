@@ -45,5 +45,35 @@
         "created_at": "2026-04-15 12:35:43",
         "created_by": "Owner",
         "source": "image_scan"
+    },
+    {
+        "lot_number": "CRM-HPD-0Qt-04192026",
+        "ingredient_code": "CRM",
+        "ingredient_name": "Cream",
+        "supplier_code": "HPD",
+        "supplier_name": "High Point Dairy",
+        "quantity": "0Qt",
+        "unit": "Qt",
+        "date_received": "2026-04-19",
+        "expiration_date": "",
+        "storage_location": "Cooler",
+        "notes": "",
+        "created_at": "2026-04-19 18:36:45",
+        "created_by": "Owner"
+    },
+    {
+        "lot_number": "BSG-HPD-0Lb-04192026",
+        "ingredient_code": "BSG",
+        "ingredient_name": "Brown Sugar",
+        "supplier_code": "HPD",
+        "supplier_name": "High Point Dairy",
+        "quantity": "0Lb",
+        "unit": "Lb",
+        "date_received": "2026-04-19",
+        "expiration_date": "",
+        "storage_location": "Cooler",
+        "notes": "",
+        "created_at": "2026-04-19 18:38:04",
+        "created_by": "Owner"
     }
 ]
