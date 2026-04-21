@@ -12,7 +12,8 @@
         "storage_location": "Cooler",
         "notes": "",
         "created_at": "2026-04-14 15:00:19",
-        "created_by": "Owner"
+        "created_by": "Owner",
+        "status": "opened"
     },
     {
         "lot_number": "CRM-CMC-1QT-04142026",
@@ -28,7 +29,8 @@
         "notes": "",
         "created_at": "2026-04-15 11:50:46",
         "created_by": "Owner",
-        "source": "image_scan"
+        "source": "image_scan",
+        "status": "unopened"
     },
     {
         "lot_number": "BTR-CMC-1LB-02272025",
@@ -44,7 +46,8 @@
         "notes": "",
         "created_at": "2026-04-15 12:35:43",
         "created_by": "Owner",
-        "source": "image_scan"
+        "source": "image_scan",
+        "status": "unopened"
     },
     {
         "lot_number": "CRM-HPD-0Qt-04192026",
@@ -59,7 +62,8 @@
         "storage_location": "Cooler",
         "notes": "",
         "created_at": "2026-04-19 18:36:45",
-        "created_by": "Owner"
+        "created_by": "Owner",
+        "status": "unopened"
     },
     {
         "lot_number": "BSG-HPD-0Lb-04192026",
@@ -74,7 +78,8 @@
         "storage_location": "Cooler",
         "notes": "",
         "created_at": "2026-04-19 18:38:04",
-        "created_by": "Owner"
+        "created_by": "Owner",
+        "status": "opened"
     },
     {
         "lot_number": "COT-HPD-0Lb-04192026",
@@ -89,6 +94,7 @@
         "storage_location": "Cooler",
         "notes": "",
         "created_at": "2026-04-19 18:51:00",
-        "created_by": "Owner"
+        "created_by": "Owner",
+        "status": "unopened"
     }
 ]

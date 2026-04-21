@@ -23,6 +23,26 @@ def render_cook_dashboard(users, suppliers, ingredient_codes, flavor_codes, ingr
             st.dataframe(pd.DataFrame(batches), use_container_width=True)
         elif view_choice == "Ingredients":
             st.dataframe(pd.DataFrame(ingredients), use_container_width=True)
+            st.markdown("### Ingredient Status Management")
+            from app.data import save_json, INGREDIENTS_PATH
+            status_options = ["unopened", "opened", "empty"]
+            for ing in ingredients:
+                col1, col2, col3 = st.columns([4, 2, 2])
+                with col1:
+                    st.write(f"{ing['lot_number']} ({ing['ingredient_name']})")
+                with col2:
+                    new_status = st.selectbox(
+                        "Status",
+                        status_options,
+                        index=status_options.index(ing.get("status", "unopened")),
+                        key=f"cook_status_{ing['lot_number']}"
+                    )
+                with col3:
+                    if new_status != ing.get("status", "unopened"):
+                        ing["status"] = new_status
+                        save_json(INGREDIENTS_PATH, ingredients)
+                        st.success(f"Status for {ing['lot_number']} set to {new_status}")
+                        st.rerun()
         else:
             st.dataframe(pd.DataFrame(suppliers), use_container_width=True)
     with tab2:
@@ -86,7 +106,7 @@ def render_cook_dashboard(users, suppliers, ingredient_codes, flavor_codes, ingr
         ingredient_lots = {}
         for code in ["Cream", "Butter", "Brown Sugar", "Salt", "Corn Syrup", "Sweetened Condensed Milk", "Cream of Tartar", "Flavoring", "Nuts"]:
             key = code.lower().replace(" ", "_")
-            lot_options = [i["lot_number"] for i in ingredients if i["ingredient_name"].lower() == code.lower()]
+            lot_options = [i["lot_number"] for i in ingredients if i["ingredient_name"].lower() == code.lower() and i.get("status", "unopened") == "opened"]
             col_lot, col_cam = st.columns([5,1])
             multiselect_key = f"cook_batch_{key}_lots"
             uploaded_file = col_cam.file_uploader(" ", type=["png","jpg","jpeg","webp"], key=f"cook_batch_{key}_upload", label_visibility="collapsed")

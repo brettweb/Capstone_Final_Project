@@ -79,7 +79,8 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
                 "storage_location": storage_location.strip(),
                 "notes": notes.strip(),
                 "created_at": timestamp_now(),
-                "created_by": current_user["full_name"]
+                "created_by": current_user["full_name"],
+                "status": "unopened"
             }
             if any(i["lot_number"] == generated_lot for i in ingredients):
                 st.error("That lot number already exists.")
@@ -121,9 +122,36 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
         ingredient_lots = {}
         for code in ["Cream", "Butter", "Brown Sugar", "Salt", "Corn Syrup", "Sweetened Condensed Milk", "Cream of Tartar", "Flavoring", "Nuts"]:
             key = code.lower().replace(" ", "_")
-            lot_options = [i["lot_number"] for i in ingredients if i["ingredient_name"].lower() == code.lower()]
-            selected_lots = st.multiselect(f"{code} Lots", options=lot_options, key=f"batch_{key}_lots")
-            ingredient_lots[key] = selected_lots
+            lot_options = [i["lot_number"] for i in ingredients if i["ingredient_name"].lower() == code.lower() and i.get("status", "unopened") == "opened"]
+            col_lot, col_cam = st.columns([5,1])
+            multiselect_key = f"batch_{key}_lots"
+            from app.ocr import extract_lot_from_image
+            uploaded_file = col_cam.file_uploader(" ", type=["png","jpg","jpeg","webp"], key=f"owner_batch_{key}_upload", label_visibility="collapsed")
+            # Use a flag to trigger OCR update
+            ocr_flag_key = f"owner_batch_{key}_ocr_flag"
+            if ocr_flag_key not in st.session_state:
+                st.session_state[ocr_flag_key] = False
+            # If OCR flag is set, update the multiselect default and reset flag
+            if st.session_state[ocr_flag_key]:
+                extracted_lot = st.session_state.get(f"owner_batch_{key}_ocr_result", None)
+                prev_selected = st.session_state.get(multiselect_key, [])
+                if extracted_lot and extracted_lot not in prev_selected:
+                    new_selected = prev_selected + [extracted_lot]
+                    st.session_state[multiselect_key] = new_selected
+                st.session_state[ocr_flag_key] = False
+            selected_lots = col_lot.multiselect(f"{code} Lots", options=lot_options, key=multiselect_key)
+            if uploaded_file is not None:
+                extracted_lot, raw_lines, error_message = extract_lot_from_image(uploaded_file)
+                if error_message:
+                    col_cam.error(error_message)
+                elif extracted_lot:
+                    if extracted_lot not in lot_options:
+                        lot_options.append(extracted_lot)
+                    st.session_state[f"owner_batch_{key}_ocr_result"] = extracted_lot
+                    st.session_state[ocr_flag_key] = True
+                    col_cam.success(f"Read: {extracted_lot}. Added to selection.")
+                    st.rerun()
+            ingredient_lots[key] = st.session_state.get(multiselect_key, selected_lots)
         if st.button("Add Batch", key="add_batch_btn", type="primary", use_container_width=True):
             if any(b["batch_id"] == batch_id for b in batches):
                 st.error("That batch ID already exists.")
@@ -193,6 +221,25 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
         st.download_button("Download Suppliers", pd.DataFrame(suppliers).to_csv(index=False), file_name="suppliers.csv")
         st.download_button("Download Ingredients", pd.DataFrame(ingredients).to_csv(index=False), file_name="ingredients.csv")
         st.download_button("Download Batches", pd.DataFrame(batches).to_csv(index=False), file_name="batches.csv")
+        st.markdown("### Ingredient Status Management")
+        status_options = ["unopened", "opened", "empty"]
+        for ing in ingredients:
+            col1, col2, col3 = st.columns([4, 2, 2])
+            with col1:
+                st.write(f"{ing['lot_number']} ({ing['ingredient_name']})")
+            with col2:
+                new_status = st.selectbox(
+                    "Status",
+                    status_options,
+                    index=status_options.index(ing.get("status", "unopened")),
+                    key=f"status_{ing['lot_number']}"
+                )
+            with col3:
+                if new_status != ing.get("status", "unopened"):
+                    ing["status"] = new_status
+                    save_json(INGREDIENTS_PATH, ingredients)
+                    st.success(f"Status for {ing['lot_number']} set to {new_status}")
+                    st.rerun()
         st.markdown("### Danger Zone")
         if st.button("Delete All Batches", key="delete_batches_btn", type="secondary", use_container_width=True):
             batches.clear()
