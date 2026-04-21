@@ -1,1 +1,83 @@
-[]
+[
+    {
+        "batch_id": "CL-260419-001",
+        "date_produced": "2026-04-19",
+        "flavor_code": "CL",
+        "flavor_name": "Classic",
+        "ingredient_lots": {
+            "cream": [
+                "CRM-CMC-1Qt-04142026"
+            ],
+            "butter": [
+                "BTR-CMC-1LB-02272025"
+            ],
+            "brown_sugar": [
+                "BSG-HPD-0Lb-04192026"
+            ],
+            "salt": [],
+            "corn_syrup": [],
+            "sweetened_condensed_milk": [],
+            "cream_of_tartar": [],
+            "flavoring": [],
+            "nuts": []
+        },
+        "wholesale": false,
+        "notes": "",
+        "created_at": "2026-04-19 18:44:57",
+        "created_by": "Owner"
+    },
+    {
+        "batch_id": "CL-260419-002",
+        "date_produced": "2026-04-19",
+        "flavor_code": "CL",
+        "flavor_name": "Classic",
+        "ingredient_lots": {
+            "cream": [
+                "CRM-CMC-1Qt-04142026"
+            ],
+            "butter": [
+                "BTR-CMC-1LB-02272025"
+            ],
+            "brown_sugar": [
+                "BSG-HPD-0Lb-04192026"
+            ],
+            "salt": [],
+            "corn_syrup": [],
+            "sweetened_condensed_milk": [],
+            "cream_of_tartar": [],
+            "flavoring": [],
+            "nuts": []
+        },
+        "wholesale": false,
+        "notes": "",
+        "created_at": "2026-04-19 18:44:59",
+        "created_by": "Owner"
+    },
+    {
+        "batch_id": "CL-260419-003",
+        "date_produced": "2026-04-19",
+        "flavor_code": "CL",
+        "flavor_name": "Classic",
+        "ingredient_lots": {
+            "cream": [
+                "CRM-CMC-1Qt-04142026"
+            ],
+            "butter": [
+                "BTR-CMC-1LB-02272025"
+            ],
+            "brown_sugar": [
+                "BSG-HPD-0Lb-04192026"
+            ],
+            "salt": [],
+            "corn_syrup": [],
+            "sweetened_condensed_milk": [],
+            "cream_of_tartar": [],
+            "flavoring": [],
+            "nuts": []
+        },
+        "wholesale": false,
+        "notes": "",
+        "created_at": "2026-04-19 18:44:59",
+        "created_by": "Owner"
+    }
+]
