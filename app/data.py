@@ -151,5 +151,9 @@ def load_all_data():
     ingredient_codes = load_json(INGREDIENT_CODES_PATH, default_ingredient_codes())
     flavor_codes = load_json(FLAVOR_CODES_PATH, default_flavor_codes())
     ingredients = load_json(INGREDIENTS_PATH, default_ingredients())
+    # Ensure all ingredient lots have a status field
+    for ing in ingredients:
+        if "status" not in ing:
+            ing["status"] = "unopened"
     batches = load_json(BATCHES_PATH, default_batches())
     return users, suppliers, ingredient_codes, flavor_codes, ingredients, batches
