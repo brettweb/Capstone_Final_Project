@@ -13,9 +13,9 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
     tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         "Overview",
         "Add Ingredient Lot",
-        "Scan Lot From Photo",
         "Add Batch",
         "Traceability Search",
+        "Scan Lot From Photo",
         "AI Assistant",
         "Manage Data"
     ])
@@ -62,7 +62,19 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
             notes = st.text_area("Notes")
             lot_date = pd.to_datetime(date_received).strftime("%m%d%Y")
             quantity_text = f"{quantity_value:g}{unit}"
-            generated_lot = f"{ingredient_code}-{supplier_code}-{quantity_text}-{lot_date}"
+            # Generate unique integer prefix for lot number
+            def get_next_lot_prefix(ingredients):
+                prefixes = []
+                for i in ingredients:
+                    lot = i.get("lot_number", "")
+                    if lot and '-' in lot:
+                        prefix = lot.split('-')[0]
+                        if prefix.isdigit():
+                            prefixes.append(int(prefix))
+                return max(prefixes) + 1 if prefixes else 1
+
+            next_prefix = get_next_lot_prefix(ingredients)
+            generated_lot = f"{next_prefix}-{ingredient_code}-{supplier_code}-{quantity_text}-{lot_date}"
             st.markdown("### Generated Lot Number")
             st.code(generated_lot)
         if st.button("Add Ingredient Lot", key="add_ingredient_btn", type="primary", use_container_width=True):
@@ -90,16 +102,6 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
                 st.success(f"Ingredient lot {generated_lot} added successfully.")
                 st.rerun()
     with tab3:
-        render_scan_lot_tab(
-            tab_key_prefix="owner",
-            ingredients=ingredients,
-            batches=batches,
-            ingredient_codes=ingredient_codes,
-            suppliers=suppliers,
-            current_user_name=current_user["full_name"]
-        )
-
-    with tab4:
         st.subheader("Add New Batch")
         col1, col2 = st.columns(2)
         with col1:
@@ -172,7 +174,7 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
                 st.success(f"Batch {batch_id} added successfully.")
                 st.rerun()
 
-    with tab5:
+    with tab4:
         st.subheader("Traceability Search")
         search_type = st.radio("Search for", ["Batch", "Lot"], horizontal=True)
         if search_type == "Batch":
@@ -200,6 +202,16 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
                     st.info("No matching batch records found.")
                 else:
                     st.dataframe(pd.DataFrame(batch_matches), use_container_width=True)
+        
+    with tab5:
+        render_scan_lot_tab(
+            tab_key_prefix="owner",
+            ingredients=ingredients,
+            batches=batches,
+            ingredient_codes=ingredient_codes,
+            suppliers=suppliers,
+            current_user_name=current_user["full_name"]
+        )
 
     with tab6:
         st.subheader("AI Assistant")
@@ -216,38 +228,126 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
 
     with tab7:
         st.subheader("Manage Data")
-        st.markdown("### Download Data")
-        st.download_button("Download Users", pd.DataFrame(users).to_csv(index=False), file_name="users.csv")
-        st.download_button("Download Suppliers", pd.DataFrame(suppliers).to_csv(index=False), file_name="suppliers.csv")
-        st.download_button("Download Ingredients", pd.DataFrame(ingredients).to_csv(index=False), file_name="ingredients.csv")
-        st.download_button("Download Batches", pd.DataFrame(batches).to_csv(index=False), file_name="batches.csv")
+    # ...existing code for Ingredient Status Management and Danger Zone...
+        # Download Data area (now below Danger Zone)
+
+        # ...existing code for Ingredient Status Management and Danger Zone...
+
+        with st.expander("Download Data"):
+            st.download_button("Download Users", pd.DataFrame(users).to_csv(index=False), file_name="users.csv")
+            st.download_button("Download Suppliers", pd.DataFrame(suppliers).to_csv(index=False), file_name="suppliers.csv")
+            st.download_button("Download Ingredients", pd.DataFrame(ingredients).to_csv(index=False), file_name="ingredients.csv")
+            st.download_button("Download Batches", pd.DataFrame(batches).to_csv(index=False), file_name="batches.csv")
         st.markdown("### Ingredient Status Management")
         status_options = ["unopened", "opened", "empty"]
-        for ing in ingredients:
-            col1, col2, col3 = st.columns([4, 2, 2])
-            with col1:
-                st.write(f"{ing['lot_number']} ({ing['ingredient_name']})")
-            with col2:
-                new_status = st.selectbox(
-                    "Status",
-                    status_options,
-                    index=status_options.index(ing.get("status", "unopened")),
-                    key=f"status_{ing['lot_number']}"
-                )
-            with col3:
-                if new_status != ing.get("status", "unopened"):
-                    ing["status"] = new_status
-                    save_json(INGREDIENTS_PATH, ingredients)
-                    st.success(f"Status for {ing['lot_number']} set to {new_status}")
-                    st.rerun()
+        # Separate ingredients by status
+        editable_ingredients = [ing for ing in ingredients if ing.get("status", "unopened") != "empty"]
+        empty_ingredients = [ing for ing in ingredients if ing.get("status", "unopened") == "empty"]
+
+        # Group editable ingredients by type
+        grouped = {}
+        for ing in editable_ingredients:
+            ing_type = ing.get("ingredient_name", "Other")
+            if ing_type not in grouped:
+                grouped[ing_type] = []
+            grouped[ing_type].append(ing)
+
+        for ing_type, ings in grouped.items():
+            st.markdown(f"**{ing_type}**")
+            for ing in ings:
+                col1, col2, col3 = st.columns([4, 2, 2])
+                with col1:
+                    st.write(f"{ing['lot_number']} ({ing['ingredient_name']})")
+                with col2:
+                    new_status = st.selectbox(
+                        "Status",
+                        status_options,
+                        index=status_options.index(ing.get("status", "unopened")),
+                        key=f"status_{ing['lot_number']}"
+                    )
+                with col3:
+                    if new_status != ing.get("status", "unopened"):
+                        ing["status"] = new_status
+                        save_json(INGREDIENTS_PATH, ingredients)
+                        st.success(f"Status for {ing['lot_number']} set to {new_status}")
+                        st.rerun()
+
+        st.markdown("### Empty Ingredient Lots")
+        if empty_ingredients:
+            # Group empty ingredients by type
+            empty_grouped = {}
+            for ing in empty_ingredients:
+                ing_type = ing.get("ingredient_name", "Other")
+                if ing_type not in empty_grouped:
+                    empty_grouped[ing_type] = []
+                empty_grouped[ing_type].append(ing)
+            for ing_type, ings in empty_grouped.items():
+                st.markdown(f"**{ing_type}**")
+                for ing in ings:
+                    col1, col2 = st.columns([6, 2])
+                    with col1:
+                        st.write(f"{ing['lot_number']} ({ing['ingredient_name']})")
+                    with col2:
+                        if st.button("Re-open", key=f"reopen_{ing['lot_number']}"):
+                            ing["status"] = "unopened"
+                            save_json(INGREDIENTS_PATH, ingredients)
+                            st.success(f"Ingredient lot {ing['lot_number']} re-opened.")
+                            st.rerun()
+        else:
+            st.info("No empty ingredient lots.")
         st.markdown("### Danger Zone")
-        if st.button("Delete All Batches", key="delete_batches_btn", type="secondary", use_container_width=True):
-            batches.clear()
-            save_json(BATCHES_PATH, batches)
-            st.success("All batches deleted.")
-            st.rerun()
-        if st.button("Delete All Ingredients", key="delete_ingredients_btn", type="secondary", use_container_width=True):
-            ingredients.clear()
-            save_json(INGREDIENTS_PATH, ingredients)
-            st.success("All ingredients deleted.")
-            st.rerun()
+        # Password-protected deletion area
+        with st.expander("Show Danger Zone Actions (Password Required)"):
+            delete_action = st.radio(
+                "Select Danger Zone action:",
+                [
+                    "Delete All Batches",
+                    "Delete All Ingredients",
+                    "Delete All Empty Ingredients",
+                    "Set All Ingredients to Empty"
+                ],
+                key="danger_action_radio"
+            )
+            # Show summary of what will be affected
+            if delete_action == "Delete All Batches":
+                st.warning(f"You are about to delete ALL batches. Total: {len(batches)} batches.")
+            elif delete_action == "Delete All Ingredients":
+                st.warning(f"You are about to delete ALL ingredients. Total: {len(ingredients)} lots.")
+            elif delete_action == "Delete All Empty Ingredients":
+                empty_count = sum(1 for ing in ingredients if ing.get("status", "unopened") == "empty")
+                st.warning(f"You are about to delete ALL empty ingredient lots. Total: {empty_count} lots.")
+            elif delete_action == "Set All Ingredients to Empty":
+                not_empty_count = sum(1 for ing in ingredients if ing.get("status", "unopened") != "empty")
+                st.warning(f"You are about to set ALL ingredients to status 'empty'. Total affected: {not_empty_count} lots.")
+            password_input = st.text_input("Enter your password to confirm:", type="password", key="danger_zone_password")
+            if st.button("Confirm Danger Zone Action", key="danger_confirm_btn", type="secondary", use_container_width=True):
+                # Check password
+                if not current_user or password_input != current_user.get("password", ""):
+                    st.error("Incorrect password. Action cancelled.")
+                else:
+                    if delete_action == "Delete All Batches":
+                        batches.clear()
+                        save_json(BATCHES_PATH, batches)
+                        st.success("All batches deleted.")
+                        st.rerun()
+                    elif delete_action == "Delete All Ingredients":
+                        ingredients.clear()
+                        save_json(INGREDIENTS_PATH, ingredients)
+                        st.success("All ingredients deleted.")
+                        st.rerun()
+                    elif delete_action == "Delete All Empty Ingredients":
+                        before = len(ingredients)
+                        ingredients[:] = [ing for ing in ingredients if ing.get("status", "unopened") != "empty"]
+                        save_json(INGREDIENTS_PATH, ingredients)
+                        after = len(ingredients)
+                        st.success(f"Deleted {before - after} empty ingredient lots.")
+                        st.rerun()
+                    elif delete_action == "Set All Ingredients to Empty":
+                        affected = 0
+                        for ing in ingredients:
+                            if ing.get("status", "unopened") != "empty":
+                                ing["status"] = "empty"
+                                affected += 1
+                        save_json(INGREDIENTS_PATH, ingredients)
+                        st.success(f"Set {affected} ingredient lots to status 'empty'.")
+                        st.rerun()

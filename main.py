@@ -41,20 +41,20 @@ if (window.innerWidth < 700) {
 
 
 # Log server info for debugging
-def get_local_ip():
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        ip = s.getsockname()[0]
-        s.close()
-        return ip
-    except Exception as e:
-        return "127.0.0.1"
+# def get_local_ip():
+#     try:
+#         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#         s.connect(("8.8.8.8", 80))
+#         ip = s.getsockname()[0]
+#         s.close()
+#         return ip
+#     except Exception as e:
+#         return "127.0.0.1"
 
-local_ip = get_local_ip()
-st.info(f"[DEBUG] Streamlit running. If accessing from another device, use: http://{local_ip}:8501")
-logging.basicConfig(level=logging.INFO)
-logging.info(f"[DEBUG] Streamlit running. Access: http://{local_ip}:8501")
+# local_ip = get_local_ip()
+# st.info(f"[DEBUG] Streamlit running. If accessing from another device, use: http://{local_ip}:8501")
+# logging.basicConfig(level=logging.INFO)
+# logging.info(f"[DEBUG] Streamlit running. Access: http://{local_ip}:8501")
 
 # Session state setup
 if "page" not in st.session_state:
