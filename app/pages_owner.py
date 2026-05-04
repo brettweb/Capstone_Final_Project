@@ -10,15 +10,58 @@ from app.data import save_json, INGREDIENTS_PATH, BATCHES_PATH, timestamp_now
 
 def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ingredients, batches, current_user):
     st.title("Owner Dashboard")
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
         "Overview",
         "Add Ingredient Lot",
         "Add Batch",
         "Traceability Search",
         "Scan Lot From Photo",
         "AI Assistant",
-        "Manage Data"
+        "Manage Data",
+        "Manage Ingredients"
     ])
+    with tab8:
+        st.subheader("Add New Ingredient Type")
+        from app.data import INGREDIENT_CODES_PATH, save_json
+        new_name = st.text_input("Ingredient Name", key="new_ing_name")
+        new_code = st.text_input("3-Character Ingredient Code", max_chars=3, key="new_ing_code").upper()
+        new_unit = st.text_input("Default Unit (e.g., Lb, Qt, Ea)", key="new_ing_unit")
+        if st.button("Add Ingredient Type", key="add_ing_type_btn", type="primary", use_container_width=True):
+            # Validation
+            if not new_name or not new_code or not new_unit:
+                st.error("All fields are required.")
+            elif len(new_code) != 3 or not new_code.isalnum():
+                st.error("Ingredient code must be exactly 3 alphanumeric characters.")
+            elif any(ic["ing_code"].upper() == new_code for ic in ingredient_codes):
+                st.error("That ingredient code already exists.")
+            elif any(ic["ingredient_name"].strip().lower() == new_name.strip().lower() for ic in ingredient_codes):
+                st.error("That ingredient name already exists.")
+            else:
+                ingredient_codes.append({
+                    "ingredient_name": new_name.strip(),
+                    "ing_code": new_code,
+                    "default_unit": new_unit.strip()
+                })
+                save_json(INGREDIENT_CODES_PATH, ingredient_codes)
+                st.success(f"Ingredient type '{new_name}' added successfully.")
+                st.rerun()
+
+        st.markdown("---")
+        st.subheader("Delete Ingredient Type")
+        if ingredient_codes:
+            del_name = st.selectbox("Select Ingredient Name to Delete", [ic["ingredient_name"] for ic in ingredient_codes], key="del_ing_name")
+            del_code = st.selectbox("Select Ingredient Code to Delete", [ic["ing_code"] for ic in ingredient_codes], key="del_ing_code")
+            if st.button("Delete Ingredient Type", key="delete_ing_type_btn", type="secondary", use_container_width=True):
+                match = next((ic for ic in ingredient_codes if ic["ingredient_name"] == del_name and ic["ing_code"] == del_code), None)
+                if not match:
+                    st.error("Selected name and code do not match any ingredient type.")
+                else:
+                    ingredient_codes.remove(match)
+                    save_json(INGREDIENT_CODES_PATH, ingredient_codes)
+                    st.success(f"Ingredient type '{del_name}' with code '{del_code}' deleted successfully.")
+                    st.rerun()
+        else:
+            st.info("No ingredient types available to delete.")
     with tab1:
         st.subheader("System Overview")
         k1, k2, k3, k4 = st.columns(4)
@@ -240,6 +283,7 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
             st.download_button("Download Batches", pd.DataFrame(batches).to_csv(index=False), file_name="batches.csv")
         st.markdown("### Ingredient Status Management")
         status_options = ["unopened", "opened", "empty"]
+        status_labels = {"unopened": "Unopened", "opened": "Opened", "empty": "Empty"}
         # Separate ingredients by status
         editable_ingredients = [ing for ing in ingredients if ing.get("status", "unopened") != "empty"]
         empty_ingredients = [ing for ing in ingredients if ing.get("status", "unopened") == "empty"]
@@ -259,17 +303,19 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
                 with col1:
                     st.write(f"{ing['lot_number']} ({ing['ingredient_name']})")
                 with col2:
-                    new_status = st.selectbox(
+                    current_status = ing.get("status", "unopened")
+                    new_status_label = st.selectbox(
                         "Status",
-                        status_options,
-                        index=status_options.index(ing.get("status", "unopened")),
+                        [status_labels[opt] for opt in status_options],
+                        index=status_options.index(current_status),
                         key=f"status_{ing['lot_number']}"
                     )
+                    new_status = status_options[[status_labels[opt] for opt in status_options].index(new_status_label)]
                 with col3:
-                    if new_status != ing.get("status", "unopened"):
+                    if new_status != current_status:
                         ing["status"] = new_status
                         save_json(INGREDIENTS_PATH, ingredients)
-                        st.success(f"Status for {ing['lot_number']} set to {new_status}")
+                        st.success(f"Status for {ing['lot_number']} set to {status_labels[new_status]}")
                         st.rerun()
 
         st.markdown("### Empty Ingredient Lots")
