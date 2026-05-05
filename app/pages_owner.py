@@ -10,27 +10,55 @@ from app.data import save_json, INGREDIENTS_PATH, BATCHES_PATH, timestamp_now
 
 def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ingredients, batches, current_user):
     st.title("Owner Dashboard")
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-        "Overview",
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+        "View Batches",
         "Add Ingredient Lot",
         "Add Batch",
         "Traceability Search",
+        "Manage Data",
+        "Manage Ingredients", 
         "Scan Lot From Photo",
-        "AI Assistant",
-        "Manage Data"
+        "AI Assistant"
     ])
     with tab1:
-        st.subheader("System Overview")
-        k1, k2, k3, k4 = st.columns(4)
-        k1.metric("Users", len(users))
-        k2.metric("Suppliers", len(suppliers))
-        k3.metric("Ingredient Lots", len(ingredients))
-        k4.metric("Batches", len(batches))
-        st.markdown("### Recent Batch Records")
-        if len(batches) > 0:
-            st.dataframe(pd.DataFrame(batches).tail(10), use_container_width=True)
+        st.subheader("View Batches")
+        df = pd.DataFrame(batches)
+        if df.empty:
+            st.info("No batches found.")
         else:
-            st.warning("No batches found.")
+            # Date filters
+            years = sorted(df['date_produced'].dropna().apply(lambda d: str(d)[:4]).unique())
+            year = st.selectbox("Year", options=["Any"] + years, key="batch_year")
+            col1, col2 = st.columns(2)
+            with col1:
+                start_date = st.date_input("Start Date", value=None, key="batch_start_date")
+            with col2:
+                end_date = st.date_input("End Date", value=None, key="batch_end_date")
+            # Flavor filter
+            flavor_options = [f["flavor_name"] for f in flavor_codes]
+            flavor = st.selectbox("Flavor", options=["Any"] + flavor_options, key="batch_flavor")
+            # Batch number filter
+            batch_number = st.text_input("Batch Number (contains)", key="batch_number_search")
+            # Created by filter
+            created_by = st.text_input("Created By (name contains)", key="batch_created_by")
+
+            filtered = df.copy()
+            if year != "Any":
+                filtered = filtered[filtered['date_produced'].str.startswith(year)]
+            if start_date:
+                filtered = filtered[filtered['date_produced'] >= str(start_date)]
+            if end_date:
+                filtered = filtered[filtered['date_produced'] <= str(end_date)]
+            if flavor != "Any":
+                filtered = filtered[filtered['flavor_name'] == flavor]
+            if batch_number:
+                filtered = filtered[filtered['batch_id'].str.contains(batch_number, case=False, na=False)]
+            if created_by:
+                filtered = filtered[filtered['created_by'].str.contains(created_by, case=False, na=False)]
+
+            st.markdown(f"**{len(filtered)} batch(es) found.**")
+            st.dataframe(filtered, use_container_width=True)
+
     with tab2:
         st.subheader("Add New Ingredient Lot")
         col1, col2, col3 = st.columns(3)
@@ -201,32 +229,8 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
                 if len(batch_matches) == 0:
                     st.info("No matching batch records found.")
                 else:
-                    st.dataframe(pd.DataFrame(batch_matches), use_container_width=True)
-        
+                    st.dataframe(pd.DataFrame(batch_matches), use_container_width=True) 
     with tab5:
-        render_scan_lot_tab(
-            tab_key_prefix="owner",
-            ingredients=ingredients,
-            batches=batches,
-            ingredient_codes=ingredient_codes,
-            suppliers=suppliers,
-            current_user_name=current_user["full_name"]
-        )
-
-    with tab6:
-        st.subheader("AI Assistant")
-        st.info("Ask the AI assistant about batches, lot numbers, suppliers, low stock, or type 'help'.")
-        messages = st.session_state.get("messages", [])
-        for msg in messages:
-            st.chat_message(msg["role"]).write(msg["content"])
-        user_input = st.chat_input("Ask a question...")
-        if user_input:
-            # Placeholder: In production, connect to an LLM or backend
-            st.session_state.messages.append({"role": "user", "content": user_input})
-            st.session_state.messages.append({"role": "assistant", "content": "Sorry, the AI assistant is not yet implemented in this demo."})
-            st.rerun()
-
-    with tab7:
         st.subheader("Manage Data")
     # ...existing code for Ingredient Status Management and Danger Zone...
         # Download Data area (now below Danger Zone)
@@ -240,6 +244,7 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
             st.download_button("Download Batches", pd.DataFrame(batches).to_csv(index=False), file_name="batches.csv")
         st.markdown("### Ingredient Status Management")
         status_options = ["unopened", "opened", "empty"]
+        status_labels = {"unopened": "Unopened", "opened": "Opened", "empty": "Empty"}
         # Separate ingredients by status
         editable_ingredients = [ing for ing in ingredients if ing.get("status", "unopened") != "empty"]
         empty_ingredients = [ing for ing in ingredients if ing.get("status", "unopened") == "empty"]
@@ -259,17 +264,19 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
                 with col1:
                     st.write(f"{ing['lot_number']} ({ing['ingredient_name']})")
                 with col2:
-                    new_status = st.selectbox(
+                    current_status = ing.get("status", "unopened")
+                    new_status_label = st.selectbox(
                         "Status",
-                        status_options,
-                        index=status_options.index(ing.get("status", "unopened")),
+                        [status_labels[opt] for opt in status_options],
+                        index=status_options.index(current_status),
                         key=f"status_{ing['lot_number']}"
                     )
+                    new_status = status_options[[status_labels[opt] for opt in status_options].index(new_status_label)]
                 with col3:
-                    if new_status != ing.get("status", "unopened"):
+                    if new_status != current_status:
                         ing["status"] = new_status
                         save_json(INGREDIENTS_PATH, ingredients)
-                        st.success(f"Status for {ing['lot_number']} set to {new_status}")
+                        st.success(f"Status for {ing['lot_number']} set to {status_labels[new_status]}")
                         st.rerun()
 
         st.markdown("### Empty Ingredient Lots")
@@ -350,4 +357,71 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
                                 affected += 1
                         save_json(INGREDIENTS_PATH, ingredients)
                         st.success(f"Set {affected} ingredient lots to status 'empty'.")
-                        st.rerun()
+                        st.rerun()       
+    with tab6:
+        st.subheader("Add New Ingredient Type")
+        from app.data import INGREDIENT_CODES_PATH, save_json
+        new_name = st.text_input("Ingredient Name", key="new_ing_name")
+        new_code = st.text_input("3-Character Ingredient Code", max_chars=3, key="new_ing_code").upper()
+        new_unit = st.text_input("Default Unit (e.g., Lb, Qt, Ea)", key="new_ing_unit")
+        if st.button("Add Ingredient Type", key="add_ing_type_btn", type="primary", use_container_width=True):
+            # Validation
+            if not new_name or not new_code or not new_unit:
+                st.error("All fields are required.")
+            elif len(new_code) != 3 or not new_code.isalnum():
+                st.error("Ingredient code must be exactly 3 alphanumeric characters.")
+            elif any(ic["ing_code"].upper() == new_code for ic in ingredient_codes):
+                st.error("That ingredient code already exists.")
+            elif any(ic["ingredient_name"].strip().lower() == new_name.strip().lower() for ic in ingredient_codes):
+                st.error("That ingredient name already exists.")
+            else:
+                ingredient_codes.append({
+                    "ingredient_name": new_name.strip(),
+                    "ing_code": new_code,
+                    "default_unit": new_unit.strip()
+                })
+                save_json(INGREDIENT_CODES_PATH, ingredient_codes)
+                st.success(f"Ingredient type '{new_name}' added successfully.")
+                st.rerun()
+
+        st.markdown("---")
+        st.subheader("Delete Ingredient Type")
+        if ingredient_codes:
+            del_name = st.selectbox("Select Ingredient Name to Delete", [ic["ingredient_name"] for ic in ingredient_codes], key="del_ing_name")
+            del_code = st.selectbox("Select Ingredient Code to Delete", [ic["ing_code"] for ic in ingredient_codes], key="del_ing_code")
+            if st.button("Delete Ingredient Type", key="delete_ing_type_btn", type="secondary", use_container_width=True):
+                match = next((ic for ic in ingredient_codes if ic["ingredient_name"] == del_name and ic["ing_code"] == del_code), None)
+                if not match:
+                    st.error("Selected name and code do not match any ingredient type.")
+                else:
+                    ingredient_codes.remove(match)
+                    save_json(INGREDIENT_CODES_PATH, ingredient_codes)
+                    st.success(f"Ingredient type '{del_name}' with code '{del_code}' deleted successfully.")
+                    st.rerun()
+        else:
+            st.info("No ingredient types available to delete.")
+    
+    with tab7:
+        render_scan_lot_tab(
+            tab_key_prefix="owner",
+            ingredients=ingredients,
+            batches=batches,
+            ingredient_codes=ingredient_codes,
+            suppliers=suppliers,
+            current_user_name=current_user["full_name"]
+        )
+
+    with tab8:
+        st.subheader("AI Assistant")
+        st.info("Ask the AI assistant about batches, lot numbers, suppliers, low stock, or type 'help'.")
+        messages = st.session_state.get("messages", [])
+        for msg in messages:
+            st.chat_message(msg["role"]).write(msg["content"])
+        user_input = st.chat_input("Ask a question...")
+        if user_input:
+            # Placeholder: In production, connect to an LLM or backend
+            st.session_state.messages.append({"role": "user", "content": user_input})
+            st.session_state.messages.append({"role": "assistant", "content": "Sorry, the AI assistant is not yet implemented in this demo."})
+            st.rerun()
+
+    
