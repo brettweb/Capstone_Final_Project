@@ -10,17 +10,56 @@ from app.data import save_json, INGREDIENTS_PATH, BATCHES_PATH, timestamp_now
 
 def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ingredients, batches, current_user):
     st.title("Owner Dashboard")
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
         "Overview",
         "Add Ingredient Lot",
         "Add Batch",
         "Traceability Search",
         "Scan Lot From Photo",
         "AI Assistant",
+        "View Batches",
         "Manage Data",
         "Manage Ingredients"
     ])
-    with tab8:
+    with tab7:
+        st.subheader("View Batches")
+        df = pd.DataFrame(batches)
+        if df.empty:
+            st.info("No batches found.")
+        else:
+            # Date filters
+            years = sorted(df['date_produced'].dropna().apply(lambda d: str(d)[:4]).unique())
+            year = st.selectbox("Year", options=["Any"] + years, key="batch_year")
+            col1, col2 = st.columns(2)
+            with col1:
+                start_date = st.date_input("Start Date", value=None, key="batch_start_date")
+            with col2:
+                end_date = st.date_input("End Date", value=None, key="batch_end_date")
+            # Flavor filter
+            flavor_options = [f["flavor_name"] for f in flavor_codes]
+            flavor = st.selectbox("Flavor", options=["Any"] + flavor_options, key="batch_flavor")
+            # Batch number filter
+            batch_number = st.text_input("Batch Number (contains)", key="batch_number_search")
+            # Created by filter
+            created_by = st.text_input("Created By (name contains)", key="batch_created_by")
+
+            filtered = df.copy()
+            if year != "Any":
+                filtered = filtered[filtered['date_produced'].str.startswith(year)]
+            if start_date:
+                filtered = filtered[filtered['date_produced'] >= str(start_date)]
+            if end_date:
+                filtered = filtered[filtered['date_produced'] <= str(end_date)]
+            if flavor != "Any":
+                filtered = filtered[filtered['flavor_name'] == flavor]
+            if batch_number:
+                filtered = filtered[filtered['batch_id'].str.contains(batch_number, case=False, na=False)]
+            if created_by:
+                filtered = filtered[filtered['created_by'].str.contains(created_by, case=False, na=False)]
+
+            st.markdown(f"**{len(filtered)} batch(es) found.**")
+            st.dataframe(filtered, use_container_width=True)
+    with tab9:
         st.subheader("Add New Ingredient Type")
         from app.data import INGREDIENT_CODES_PATH, save_json
         new_name = st.text_input("Ingredient Name", key="new_ing_name")
@@ -269,7 +308,7 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
             st.session_state.messages.append({"role": "assistant", "content": "Sorry, the AI assistant is not yet implemented in this demo."})
             st.rerun()
 
-    with tab7:
+    with tab8:
         st.subheader("Manage Data")
     # ...existing code for Ingredient Status Management and Danger Zone...
         # Download Data area (now below Danger Zone)

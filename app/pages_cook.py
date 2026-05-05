@@ -8,16 +8,56 @@ from app.search import batch_lookup, ingredient_lookup, find_batches_using_lot
 
 def render_cook_dashboard(users, suppliers, ingredient_codes, flavor_codes, ingredients, batches, current_user):
     st.title("Cook Dashboard")
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
         "View Data",
         "Add Batch",
         "Batch Lookup",
         "Lot Lookup",
         "Scan Lot From Photo",
         "AI Assistant",
+        "View Batches",
         "Manage Data"
     ])
     with tab7:
+        st.subheader("View Batches")
+        df = pd.DataFrame(batches)
+        if df.empty:
+            st.info("No batches found.")
+        else:
+            # Date filters
+            years = sorted(df['date_produced'].dropna().apply(lambda d: str(d)[:4]).unique())
+            year = st.selectbox("Year", options=["Any"] + years, key="cook_batch_year")
+            col1, col2 = st.columns(2)
+            with col1:
+                start_date = st.date_input("Start Date", value=None, key="cook_batch_start_date")
+            with col2:
+                end_date = st.date_input("End Date", value=None, key="cook_batch_end_date")
+            # Flavor filter
+            flavor_options = [f["flavor_name"] for f in flavor_codes]
+            flavor = st.selectbox("Flavor", options=["Any"] + flavor_options, key="cook_batch_flavor")
+            # Batch number filter
+            batch_number = st.text_input("Batch Number (contains)", key="cook_batch_number_search")
+            # Created by filter
+            created_by = st.text_input("Created By (name contains)", key="cook_batch_created_by")
+
+            filtered = df.copy()
+            if year != "Any":
+                filtered = filtered[filtered['date_produced'].str.startswith(year)]
+            if start_date:
+                filtered = filtered[filtered['date_produced'] >= str(start_date)]
+            if end_date:
+                filtered = filtered[filtered['date_produced'] <= str(end_date)]
+            if flavor != "Any":
+                filtered = filtered[filtered['flavor_name'] == flavor]
+            if batch_number:
+                filtered = filtered[filtered['batch_id'].str.contains(batch_number, case=False, na=False)]
+            if created_by:
+                filtered = filtered[filtered['created_by'].str.contains(created_by, case=False, na=False)]
+
+            st.markdown(f"**{len(filtered)} batch(es) found.**")
+            st.dataframe(filtered, use_container_width=True)
+    
+    with tab8:
         st.subheader("Manage Data")
         st.markdown("### Ingredient Status Management")
         from app.data import save_json, INGREDIENTS_PATH
