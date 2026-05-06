@@ -10,18 +10,17 @@ from app.data import save_json, INGREDIENTS_PATH, BATCHES_PATH, timestamp_now
 
 def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ingredients, batches, current_user):
     st.title("Owner Dashboard")
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
-        "Overview",
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+        "View Batches",
         "Add Ingredient Lot",
         "Add Batch",
         "Traceability Search",
-        "Scan Lot From Photo",
-        "AI Assistant",
-        "View Batches",
         "Manage Data",
-        "Manage Ingredients"
+        "Manage Ingredients",
+        "Scan Lot From Photo",
+        "AI Assistant"
     ])
-    with tab7:
+    with tab1:
         st.subheader("View Batches")
         df = pd.DataFrame(batches)
         if df.empty:
@@ -59,7 +58,7 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
 
             st.markdown(f"**{len(filtered)} batch(es) found.**")
             st.dataframe(filtered, use_container_width=True)
-    with tab9:
+    with tab6:
         st.subheader("Add New Ingredient Type")
         from app.data import INGREDIENT_CODES_PATH, save_json
         new_name = st.text_input("Ingredient Name", key="new_ing_name")
@@ -101,18 +100,6 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
                     st.rerun()
         else:
             st.info("No ingredient types available to delete.")
-    with tab1:
-        st.subheader("System Overview")
-        k1, k2, k3, k4 = st.columns(4)
-        k1.metric("Users", len(users))
-        k2.metric("Suppliers", len(suppliers))
-        k3.metric("Ingredient Lots", len(ingredients))
-        k4.metric("Batches", len(batches))
-        st.markdown("### Recent Batch Records")
-        if len(batches) > 0:
-            st.dataframe(pd.DataFrame(batches).tail(10), use_container_width=True)
-        else:
-            st.warning("No batches found.")
     with tab2:
         st.subheader("Add New Ingredient Lot")
         col1, col2, col3 = st.columns(3)
@@ -285,7 +272,7 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
                 else:
                     st.dataframe(pd.DataFrame(batch_matches), use_container_width=True)
         
-    with tab5:
+    with tab7:
         render_scan_lot_tab(
             tab_key_prefix="owner",
             ingredients=ingredients,
@@ -295,7 +282,7 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
             current_user_name=current_user["full_name"]
         )
 
-    with tab6:
+    with tab8:
         st.subheader("AI Assistant")
         st.info("Ask the AI assistant about batches, lot numbers, suppliers, low stock, or type 'help'.")
         messages = st.session_state.get("messages", [])
@@ -308,12 +295,9 @@ def render_owner_dashboard(users, suppliers, ingredient_codes, flavor_codes, ing
             st.session_state.messages.append({"role": "assistant", "content": "Sorry, the AI assistant is not yet implemented in this demo."})
             st.rerun()
 
-    with tab8:
+    with tab5:
         st.subheader("Manage Data")
-    # ...existing code for Ingredient Status Management and Danger Zone...
         # Download Data area (now below Danger Zone)
-
-        # ...existing code for Ingredient Status Management and Danger Zone...
 
         with st.expander("Download Data"):
             st.download_button("Download Users", pd.DataFrame(users).to_csv(index=False), file_name="users.csv")

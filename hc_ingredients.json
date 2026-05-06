@@ -13,23 +13,7 @@
         "notes": "",
         "created_at": "2026-04-23 10:58:14",
         "created_by": "Owner",
-        "status": "opened"
-    },
-    {
-        "lot_number": "8-BTR-HPD-0Lb-04232026",
-        "ingredient_code": "BTR",
-        "ingredient_name": "Butter",
-        "supplier_code": "HPD",
-        "supplier_name": "High Point Dairy",
-        "quantity": "0Lb",
-        "unit": "Lb",
-        "date_received": "2026-04-23",
-        "expiration_date": "",
-        "storage_location": "Cooler",
-        "notes": "",
-        "created_at": "2026-04-23 10:58:14",
-        "created_by": "Owner",
-        "status": "unopened"
+        "status": "empty"
     },
     {
         "lot_number": "9-CRM-HPD-0Qt-04232026",
@@ -45,7 +29,7 @@
         "notes": "",
         "created_at": "2026-04-23 17:06:30",
         "created_by": "Owner",
-        "status": "unopened"
+        "status": "empty"
     },
     {
         "lot_number": "10-CRM-HPD-0Qt-04232026",
@@ -144,22 +128,6 @@
         "status": "unopened"
     },
     {
-        "lot_number": "16-GCI-HPD-0Lb-04272026",
-        "ingredient_code": "GCI",
-        "ingredient_name": "Ground Cinnamon",
-        "supplier_code": "HPD",
-        "supplier_name": "High Point Dairy",
-        "quantity": "0Lb",
-        "unit": "Lb",
-        "date_received": "2026-04-27",
-        "expiration_date": "",
-        "storage_location": "Cooler",
-        "notes": "",
-        "created_at": "2026-04-27 13:58:31",
-        "created_by": "Owner",
-        "status": "unopened"
-    },
-    {
         "lot_number": "17-BTR-HPD-0Lb-04272026",
         "ingredient_code": "BTR",
         "ingredient_name": "Butter",
@@ -189,7 +157,7 @@
         "notes": "",
         "created_at": "2026-04-27 13:58:37",
         "created_by": "Owner",
-        "status": "opened"
+        "status": "empty"
     },
     {
         "lot_number": "19-CRM-HPD-0Qt-04292026",
@@ -252,6 +220,54 @@
         "storage_location": "Cooler",
         "notes": "",
         "created_at": "2026-05-05 20:40:16",
+        "created_by": "Owner",
+        "status": "unopened"
+    },
+    {
+        "lot_number": "25-CRM-HPD-0Qt-05052026",
+        "ingredient_code": "CRM",
+        "ingredient_name": "Cream",
+        "supplier_code": "HPD",
+        "supplier_name": "High Point Dairy",
+        "quantity": "0Qt",
+        "unit": "Qt",
+        "date_received": "2026-05-05",
+        "expiration_date": "",
+        "storage_location": "Cooler",
+        "notes": "",
+        "created_at": "2026-05-05 21:00:51",
+        "created_by": "Owner",
+        "status": "unopened"
+    },
+    {
+        "lot_number": "26-CRM-HPD-0Qt-05052026",
+        "ingredient_code": "CRM",
+        "ingredient_name": "Cream",
+        "supplier_code": "HPD",
+        "supplier_name": "High Point Dairy",
+        "quantity": "0Qt",
+        "unit": "Qt",
+        "date_received": "2026-05-05",
+        "expiration_date": "",
+        "storage_location": "Cooler",
+        "notes": "",
+        "created_at": "2026-05-05 21:00:52",
+        "created_by": "Owner",
+        "status": "unopened"
+    },
+    {
+        "lot_number": "27-CRM-HPD-0Qt-05052026",
+        "ingredient_code": "CRM",
+        "ingredient_name": "Cream",
+        "supplier_code": "HPD",
+        "supplier_name": "High Point Dairy",
+        "quantity": "0Qt",
+        "unit": "Qt",
+        "date_received": "2026-05-05",
+        "expiration_date": "",
+        "storage_location": "Cooler",
+        "notes": "",
+        "created_at": "2026-05-05 21:00:53",
         "created_by": "Owner",
         "status": "unopened"
     }
