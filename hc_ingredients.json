@@ -240,19 +240,19 @@
         "status": "unopened"
     },
     {
-        "lot_number": "22-CRM-HPD-0Qt-04292026",
+        "lot_number": "24-CRM-HPD-0Qt-05052026",
         "ingredient_code": "CRM",
         "ingredient_name": "Cream",
         "supplier_code": "HPD",
         "supplier_name": "High Point Dairy",
         "quantity": "0Qt",
         "unit": "Qt",
-        "date_received": "2026-04-29",
+        "date_received": "2026-05-05",
         "expiration_date": "",
         "storage_location": "Cooler",
         "notes": "",
-        "created_at": "2026-04-29 15:20:16",
+        "created_at": "2026-05-05 20:40:16",
         "created_by": "Owner",
-        "status": "opened"
+        "status": "unopened"
     }
 ]
