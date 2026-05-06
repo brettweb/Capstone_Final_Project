@@ -183,5 +183,10 @@
         "ingredient_name": "Gingerbread Spice Mix",
         "ing_code": "GBS",
         "default_unit": "Lb"
+    },
+    {
+        "ingredient_name": "Dill",
+        "ing_code": "DLL",
+        "default_unit": "Ea"
     }
 ]
